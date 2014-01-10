@@ -1,6 +1,6 @@
-'  Copyright (C) 2013  Will Lee-Wagner
+'  Will Lee-Wagner
 '  whentheresawill.net
-'  2013-12-27
+'  2014-01-10
 '  
 '  This is a set of public functions and subs for Excel
 '  You can put these in the VBA module of a workbook or Excel add-in
@@ -70,6 +70,50 @@ Public Function RandomAssign(percentAssigned As Double, waysSplit As Integer) As
     End If
 End Function
 
+Public Function FullName(lastFirst As Boolean, first, last, suffix, Optional mi = "") As String
+    ' USE:              return a full name from a broken up one
+    '
+    ' lastFirst:        if true, return {Last, First Mi. Suffix}. Otherwise {First Mi. Last Suffix}.
+    ' first:            first name
+    ' last:             last name
+    ' suffix:           suffix (III, Jr.)
+    ' mi:               middle initial
+    ' OUTPUT:           full name, formatted as requested
+    
+    Dim name As String
+    
+    'Set nulls to blanks (otherwise will cause errors)
+    If IsNull(first) Then first = vbNullString
+    If IsNull(last) Then last = vbNullString
+    If IsNull(suffix) Then suffix = vbNullString
+    If IsNull(mi) Then mi = vbNullString
+    
+    If lastFirst Then
+        'Last Name First
+        name = last & ", " & first
+        If mi <> vbNullString Then
+            name = name & " " & mi & "."
+        End If
+        If suffix <> vbNullString Then
+            name = name & " " & suffix 'don't add dot to suffix (it could be III, etc.)
+        End If
+    Else
+        'First Name First
+        name = first
+        If mi <> vbNullString Then
+            name = name & " " & mi & "."
+        End If
+        name = name & " " & last
+        If suffix <> vbNullString Then
+            name = name & " " & suffix
+        End If
+    End If
+    
+    'return
+    FullName = name
+    
+End Function
+
 Public Function ColorIf(cell As Range, Optional reference_cell As Range, Optional reference_color As Long)
     ' USE:              Check if a cell is the same color as a reference cell
     ' cell:             cell to check
@@ -135,6 +179,7 @@ Public Sub CopyTextOnly()
     ' USE:              to copy only the text, not the cell(s), from a selection
     ' Shortcut:         CTRL-SHIFT-C
     ' REQUIRES:         set up a shortcut under Macros
+    ' REQUIRES:         Microsoft Forms 2.0 Library
     
     Dim DataObj As New MSForms.DataObject
     Dim selectionStart As Range
