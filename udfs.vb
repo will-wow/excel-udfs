@@ -204,14 +204,17 @@ Public Sub ConvertToNumber()
     ' REQUIRES:         set up a shortcut under Macros
     
     Dim c As Range
+    Dim v As String
     
     ' loop through all of select
     ' limit to UsedRange, of converting a whole column takes a long time
     For Each c In Intersect(Selection, ActiveSheet.UsedRange)
+        v = Replace(c.Value, ",", vbNullString)
+        
         'get any numbers
-        If IsNumeric(c) And Not IsDate(c) And c.Value <> vbNullString Then
+        If IsNumeric(v) And Not IsDate(v) And v <> vbNullString Then
             ' convert to number
-            c.Value = Val(c.Value)
+            c.Value = val(v)
         End If
     Next c
 End Sub
