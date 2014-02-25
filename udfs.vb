@@ -1,6 +1,6 @@
 '  Will Lee-Wagner
 '  whentheresawill.net
-'  2014-01-10
+'  2014-02-25
 '  
 '  This is a set of public functions and subs for Excel
 '  You can put these in the VBA module of a workbook or Excel add-in
@@ -166,11 +166,37 @@ Public Sub PasteSpecialValues()
     ' USE:              to give paste special - values its own shortcut
     ' Shortcut:         Ctrl Shift + V
     ' REQUIRES:         set up a shortcut under Macros
+    Dim DataObj As MsForms.DataObject
+    Dim paste_text As String, cell_end As Long
     
-    On Error Resume Next
+    On Error GoTo Paste_One
     ' paste special values
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
             :=False, Transpose:=False
+    On Error GoTo 0
+    
+    ' exit if no error
+    Exit Sub
+
+    ' Second attempt, on error
+    ' try pasting the text from the clipboard into the first selected cell
+Paste_One:
+    Set DataObj = New MsForms.DataObject
+    ' get clipboard data
+    DataObj.GetFromClipboard
+    
+    ' silently fail if data isn't text
+    On Error Resume Next
+    ' get text from clipboard
+    paste_text = DataObj.GetText(1)
+    ' get the location of the first line feed (probably end of first cell)
+    cell_end = InStr(1, paste_text, vbCrLf, vbTextCompare)
+    ' cut off later cells (if any)
+    If cell_end > 0 Then
+        paste_text = Left(paste_text, cell_end - 1)
+    End If
+    ' insert text into first selected cell (even if it's merged)
+    Selection.Cells(1, 1).Value = paste_text
     On Error GoTo 0
 
 End Sub
