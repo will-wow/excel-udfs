@@ -109,7 +109,7 @@ Public Function FullName(lastFirst As Boolean, first, last, suffix, Optional mi 
         End If
     End If
     
-    'return
+    ' return
     FullName = name
     
 End Function
