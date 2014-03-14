@@ -1,7 +1,7 @@
 '  Will Lee-Wagner
 '  whentheresawill.net
-'  2014-02-25
-'  
+'  2014-03-14
+'
 '  This is a set of public functions and subs for Excel
 '  You can put these in the VBA module of a workbook or Excel add-in
 '  to add their functionality, or go to whentheresawill.net/code
@@ -109,7 +109,7 @@ Public Function FullName(lastFirst As Boolean, first, last, suffix, Optional mi 
         End If
     End If
     
-    ' return
+    'return
     FullName = name
     
 End Function
@@ -176,29 +176,41 @@ Public Sub PasteSpecialValues()
     On Error GoTo 0
     
     ' exit if no error
+Resume_Exit:
     Exit Sub
 
     ' Second attempt, on error
     ' try pasting the text from the clipboard into the first selected cell
+    
+Paste_One_Err:
+    ' close the DataObj on error
+    Set DataObj = Nothing
+    Resume Resume_Exit
+    
 Paste_One:
     Set DataObj = New MsForms.DataObject
+    ' silently fail if this doesn't work either
+    On Error GoTo Paste_One_Err
     ' get clipboard data
     DataObj.GetFromClipboard
     
-    ' silently fail if data isn't text
-    On Error Resume Next
-    ' get text from clipboard
-    paste_text = DataObj.GetText(1)
-    ' get the location of the first line feed (probably end of first cell)
-    cell_end = InStr(1, paste_text, vbCrLf, vbTextCompare)
-    ' cut off later cells (if any)
-    If cell_end > 0 Then
-        paste_text = Left(paste_text, cell_end - 1)
+    ' check if clipboard is text
+    If DataObj.GetFormat(1) Then
+        ' get text from clipboard
+        paste_text = DataObj.GetText(1)
+        ' get the location of the first line feed (probably end of first cell)
+        cell_end = InStr(1, paste_text, vbCrLf, vbTextCompare)
+        ' cut off later cells (if any)
+        If cell_end > 0 Then
+            paste_text = Left(paste_text, cell_end - 1)
+        End If
+        ' insert text into first selected cell (even if it's merged)
+        Selection.Cells(1, 1).Value = paste_text
     End If
-    ' insert text into first selected cell (even if it's merged)
-    Selection.Cells(1, 1).Value = paste_text
     On Error GoTo 0
-
+    
+    ' close the DataObj
+    Set DataObj = Nothing
 End Sub
 
 Public Sub CopyTextOnly()
@@ -207,9 +219,11 @@ Public Sub CopyTextOnly()
     ' REQUIRES:         set up a shortcut under Macros
     ' REQUIRES:         Microsoft Forms 2.0 Library
     
-    Dim DataObj As New MSForms.DataObject
+    Dim DataObj As MsForms.DataObject
     Dim selectionStart As Range
     Dim copyText As String
+    
+    Set DataObj = New MsForms.DataObject
     
     On Error Resume Next ' on error, do nothing
     ' get only the first cell in a selection
